@@ -1,4 +1,4 @@
-"""Synchronous, stateful policy client, independent of any simulator or WT runtime."""
+"""Synchronous client for the WorldTerminal hosted policy API."""
 
 import os
 import threading

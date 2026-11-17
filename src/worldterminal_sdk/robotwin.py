@@ -1,4 +1,4 @@
-"""RoboTwin observations from measured simulator state, independent of WT runtime code."""
+"""RoboTwin observations from measured simulator state."""
 from __future__ import annotations
 
 import hashlib
