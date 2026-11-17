@@ -21,8 +21,9 @@ For a separately configured dual ARX-X5 station use `robotwin_arx_x5()` and the 
 `robotwin/ARX-X5/joint-v1` endpoint. Its actual loaded roots/mount separation remain in
 `state.robot_identity`; this profile never supplies Aloha mounts or a guessed separation.
 `run_episode` does not reset the simulator or choose a seed, task, language split or budget.
-It stops at the official `eval_success` or `step_lim`, reports that checker outcome and
-`take_action_cnt`, and polls `waiting` replies without consuming an environment action.
+It stops when WT returns `done` or the official `eval_success`/`step_lim` ends the episode,
+reports that checker outcome and `take_action_cnt`, and polls `waiting` replies without
+consuming an environment action.
 
 `observation()` reads actual arm qpos and the base finger joint's measured qpos, normalized
 by the loaded embodiment's gripper scale. Drive targets and commanded grippers remain
@@ -50,6 +51,24 @@ overrides the module's named `robotwin_obs_to_xpolicylab` function **in memory**
 runtime converter override, not unchanged standard-launcher compatibility. It then calls
 the original `Sapien_TEST`, `parse_args`, and sequential `main` in the official order. The
 official loop, action conversion, seeds, task setup, instructions and checker are retained.
+
+The XPolicyLab `Model` adapter's RoboTwin mode must keep returning joint rows while that
+official loop is running. When WT returns `done`, it latches that policy stop and returns
+HOLD rows copied from the latest actual measured arm joints and normalized finger openings.
+Each new observation refreshes the local HOLD; it is no longer sent to the ended WT worker,
+and that worker is not polled again. Missing or invalid measured state refuses the action
+rather than using a guessed pose, drive target or stale observation. Reset clears this state.
+RoboDojo's existing client calls and `done` behavior are unchanged.
+
+These HOLD rows are real native actions: physics continues, and the official checker or
+native action budget ends the episode. An early WT failure is not turned into a success
+claim or an empty-action transport error that skips to another seed. This changes the
+client adapter's terminal behavior; it does not patch the evaluator. Keep the private WT
+stop status separate from the official outcome. Physics may still evolve during holding;
+this loop is not equivalent to a direct runner that stops immediately at WT `done`.
+Positive direct/API parity requires the official checker to end before terminal holding,
+or a separate comparison using the same terminal-loop semantics. This change does not
+enforce an exact seed or change the evaluator's expert/setup/error skip rules.
 
 Run from the RoboTwin root with the SDK source on the simulator Python path:
 
@@ -87,3 +106,8 @@ ROBOTWIN_OFFICIAL_EVALUATOR="$ROBOTWIN_ROOT/scripts/eval_policy_xpolicylab.py" \
 It checks the real parser/boundary, measured metadata, byte-identical source before and
 after, no duplicate observation capture and explicit batch refusal. Physics execution and
 the official checker are not validated by this test.
+
+`tests/test_robotwin_terminal_hold.py` also exercises the unchanged pinned official
+`eval_remote_policy` loop with fake physics: zero-step WT completion consumes measured
+HOLD actions to a counted budget failure without a seed retry, and an earlier checker
+success ends before holding. These CPU tests establish no native physics result.

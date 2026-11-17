@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Mapping
 from pathlib import Path
 
 import numpy as np
@@ -103,6 +104,28 @@ def action_vector(row):
             raise ValueError('RoboTwin action requires six finite joints and opening in [0,1]')
         values.extend([*joints, opening[0]])
     return np.asarray(values, dtype=np.float64)
+
+
+def measured_hold(observation):
+    """A copied qpos row that holds the latest measured joints and finger opening.
+
+    Drive targets and gripper commands are not measured state. Missing or invalid
+    measurements refuse the hold rather than reusing an earlier observation.
+    """
+    state = observation.get('state') if isinstance(observation, Mapping) else None
+    if state is None:
+        raise ValueError('RoboTwin terminal hold requires measured state')
+    if not isinstance(state, Mapping):
+        raise TypeError('RoboTwin measured state must be a mapping')
+    try:
+        row = {f'{side}_{kind}_joint_state': np.asarray(
+            state[f'{side}_{kind}_joint_state'], dtype=float).copy().tolist()
+            for side in ('left', 'right') for kind in ('arm', 'ee')}
+        action_vector(row)
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError('RoboTwin terminal hold requires six finite measured joints '
+                         'and one measured opening in [0,1] per arm') from error
+    return row
 
 
 def run_episode(task, client, *, instruction):
