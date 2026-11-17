@@ -48,13 +48,14 @@ def camera_to_world_gl(world_to_camera_cv):
     return (np.linalg.inv(matrix) @ np.diag([1., -1., -1., 1.])).tolist()
 
 
-def observation(task, *, instruction, identity=None, camera_names=None):
+def observation(task, *, instruction, identity=None, camera_names=None, raw=None):
     """Capture current RGB/calibration and actual joints/finger positions.
 
     The official joint_action field contains drive targets and is deliberately not used
     for measured state. No objects, checker details or task-internal geometry are sent.
+    Pass raw when the evaluator has already captured the observation to avoid recapture.
     """
-    raw = task.get_obs()
+    raw = task.get_obs() if raw is None else raw
     robot = task.robot
     vision, views = {}, {}
     for target, source in (camera_names or CAMERAS).items():

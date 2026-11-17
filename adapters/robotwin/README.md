@@ -38,3 +38,53 @@ the measured-state contract. Use the evaluator-side adapter above; the server re
 missing robot identity rather than treating an action-vector layout as model identity.
 
 Source checks and transport tests establish no official RoboTwin score or direct/API parity.
+
+## Explicit evaluator launcher
+
+The explicit SDK launcher boundary is accepted; native simulator validation remains
+pending. The standard unmodified RoboTwin launcher remains unsupported for the measured
+state contract. This launcher is not enabled by `stage_xpolicylab.sh`.
+
+The pinned official evaluator has no policy callback receiving `TASK_ENV`. The explicit SDK
+launcher loads its unchanged `scripts/eval_policy_xpolicylab.py`, verifies its SHA256, and
+overrides the module's named `robotwin_obs_to_xpolicylab` function **in memory**. This is a
+runtime converter override, not unchanged standard-launcher compatibility. It then calls
+the original `Sapien_TEST`, `parse_args`, and sequential `main` in the official order. The
+official loop, action conversion, seeds, task setup, instructions and checker are retained.
+
+Run from the RoboTwin root with the SDK source on the simulator Python path:
+
+```bash
+cd "$ROBOTWIN_ROOT"
+PYTHONPATH="$SDK_ROOT/src:$ROBOTWIN_ROOT:$ROBOTWIN_ROOT/scripts${PYTHONPATH:+:$PYTHONPATH}" \
+  python -m worldterminal_sdk.robotwin_evaluator --robotwin-root "$ROBOTWIN_ROOT" -- \
+  --bench_name robotwin --task_name "$TASK" --policy_name WorldTerminal \
+  --root_dir "$ROBOTWIN_ROOT" --port "$POLICY_PORT" --device_id "$ASSIGNED_DEVICE" \
+  --task_config demo_randomized --seed "$OFFICIAL_SEED_INDEX" --test_num 1 \
+  --eval_batch false
+```
+
+Arguments after `--` go to the official parser unchanged. Its `--seed` is an index: the
+official starting seed is `100000 * (1 + index)`, and the evaluator can skip/retry seeds.
+Record the actual selected seed; this launcher does not enforce an exact seed or change
+that behavior. GPU isolation and policy endpoint setup remain the coordinator's existing
+responsibility. Batch mode is refused because spawned workers would not inherit this
+module-local override.
+
+The converter consumes the evaluator's existing raw observation without a second
+`get_obs()` call. It derives robot identity and measured joints/finger opening from that
+episode's actual `TASK_ENV.robot`, and retains the official instruction, environment index
+and frequency. No task objects, seed selection or scorer state are added to the observation.
+The evaluator file must have SHA256
+`78821388d58daf8aa65db55c5952df3742486dd93e717ce6a96374a3795dfc7a`.
+
+The focused test can use the actual official file without running the simulator:
+
+```bash
+ROBOTWIN_OFFICIAL_EVALUATOR="$ROBOTWIN_ROOT/scripts/eval_policy_xpolicylab.py" \
+  PYTHONPATH=src python -m pytest tests/test_robotwin_evaluator.py -q
+```
+
+It checks the real parser/boundary, measured metadata, byte-identical source before and
+after, no duplicate observation capture and explicit batch refusal. Physics execution and
+the official checker are not validated by this test.
