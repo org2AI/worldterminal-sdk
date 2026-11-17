@@ -7,6 +7,8 @@ name = "worldterminal-sdk"
 version = "0.1.0.dev0"
 description = "Public client for the WorldTerminal hosted robot policy API"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = ["websockets>=15,<18", "msgpack>=1,<2", "numpy>=1.24"]
 

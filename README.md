@@ -54,3 +54,7 @@ python -m pytest
 ```
 
 The SDK tests use a local WebSocket endpoint. XPolicyLab model integration tests also use the upstream ModelTemplate when XPolicyLab is installed.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). See [XPolicyLab attribution](third_party/XPolicyLab/README.md) for the adapted evaluation scripts.
