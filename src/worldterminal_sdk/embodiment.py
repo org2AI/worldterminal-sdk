@@ -12,9 +12,25 @@ def arx_x5():
     return json.loads(files(__package__).joinpath("arx_x5.json").read_text(encoding="utf-8"))
 
 
+def robotwin_aloha():
+    """Aloha joint layout; loaded robot identity remains in each observation's state."""
+    config = arx_x5()
+    config['id'] = 'robotwin/aloha-agilex/joint-v1'
+    return config
+
+
+def robotwin_arx_x5():
+    """RoboTwin dual-X5 layout; articulation mounts are retained separately in state."""
+    config = arx_x5()
+    config['id'] = 'robotwin/ARX-X5/joint-v1'
+    return config
+
+
 class JointProfile:
     def __init__(self, config):
-        canonical = arx_x5()
+        profiles = {profile['id']: profile for profile in
+                    (arx_x5(), robotwin_aloha(), robotwin_arx_x5())}
+        canonical = profiles.get(config.get('id'), arx_x5()) if isinstance(config, Mapping) else arx_x5()
         if not isinstance(config, Mapping) or set(config) != set(canonical):
             raise ValueError("embodiment: expected id, state, action and video")
         for key in ("id", "state", "action"):

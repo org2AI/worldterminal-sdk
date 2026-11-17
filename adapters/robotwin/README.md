@@ -1,28 +1,40 @@
 # WorldTerminal for RoboTwin 2.0
 
-Use the RoboTwin release with its XPolicyLab submodule (reference revision ea8b21121ebb3cd201ff5b3fe361944ac94eda3f). The shared WorldTerminal model selects the RoboTwin action-list interface when started with bench_name=RoboTwin. It polls waiting responses internally. A ready batch becomes a joint-action list. If the policy stops early, the evaluator treats the empty chunk as a failed rollout. RoboTwin owns success detection and reports its verdict to the server.
+The evaluator owns RoboTwin physics and its official verdict. The public SDK sends measured
+observations to a RoboTwin-enabled hosted worker and applies returned qpos14 joint rows.
+WT flows, planning, robot profiles and model credentials stay on the policy server.
 
-Install RoboTwin, its simulator assets and XPolicyLab following the upstream guide. Use a WorldTerminal deployment supporting RoboTwin observations and the aloha-agilex joint action layout for demo_clean. From the SDK repository root:
+Use the official RoboTwin source at `ea8b21121ebb3cd201ff5b3fe361944ac94eda3f` and its assets.
+Install this SDK in the simulator environment. After the official evaluator has reset its
+`TASK_ENV` and selected the episode instruction:
 
-```sh
-bash scripts/stage_xpolicylab.sh "$ROBOTWIN_ROOT/XPolicyLab"
-cd "$ROBOTWIN_ROOT/XPolicyLab/policy/WorldTerminal"
-# In the policy environment
-bash install.sh
-# Set WORLDTERMINAL_API_URL and optionally WORLDTERMINAL_API_TOKEN here
-bash setup_eval_policy_server.sh RoboTwin adjust_bottle worldterminal arx_x5 joint 0 policy_env 19000
+```python
+from worldterminal_sdk import Client, robotwin_aloha
+from worldterminal_sdk.robotwin import run_episode
+
+with Client(embodiment=robotwin_aloha()) as client:
+    result = run_episode(TASK_ENV, client, instruction=episode_instruction)
 ```
 
-In a second terminal, activate the simulator environment and run one episode:
+Set `WORLDTERMINAL_API_URL` and, when required, `WORLDTERMINAL_API_TOKEN`. The server must
+advertise `robotwin/aloha-agilex/joint-v1` and run the matching task/seed/configuration.
+For a separately configured dual ARX-X5 station use `robotwin_arx_x5()` and the matching
+`robotwin/ARX-X5/joint-v1` endpoint. Its actual loaded roots/mount separation remain in
+`state.robot_identity`; this profile never supplies Aloha mounts or a guessed separation.
+`run_episode` does not reset the simulator or choose a seed, task, language split or budget.
+It stops at the official `eval_success` or `step_lim`, reports that checker outcome and
+`take_action_cnt`, and polls `waiting` replies without consuming an environment action.
 
-```sh
-cd "$ROBOTWIN_ROOT"
-bash scripts/eval_policy.sh --task_name adjust_bottle --task_config demo_clean \
-  --env_cfg_type arx_x5 --policy_name WorldTerminal --host localhost --port 19000 \
-  --protocol ws --eval_batch false --test_num 1 --seed 0 \
-  --additional_info ckpt_name=worldterminal,action_type=joint
-```
+`observation()` reads actual arm qpos and the base finger joint's measured qpos, normalized
+by the loaded embodiment's gripper scale. Drive targets and commanded grippers remain
+separate fields. Camera `extrinsic_cv` is converted to GL camera-to-world by inversion and
+axis conversion; it is not renamed. Loaded URDF hashes, joint names, scales and root poses
+remain in `state.robot_identity`. Only robot/camera state and RGB are read; task objects or
+checker details are not observation inputs.
 
-The benchmark maps its cameras, instruction and state into XPolicyLab observations and converts action rows to simulator controls. For joint actions send the left and right arm joint targets and both gripper commands. The arx_x5 command-line value selects RoboTwin's XPolicyLab layout; the simulator embodiment is selected by task_config.
+The old unmodified XPolicyLab RoboTwin observation conversion sends drive targets and
+commanded grippers. Staging the shared XPolicyLab policy directory alone does not satisfy
+the measured-state contract. Use the evaluator-side adapter above; the server rejects
+missing robot identity rather than treating an action-vector layout as model identity.
 
-[Official installation and evaluation commands](https://github.com/RoboTwin-Platform/RoboTwin#5-evaluate-policies-via-xpolicylab)
+Source checks and transport tests establish no official RoboTwin score or direct/API parity.
