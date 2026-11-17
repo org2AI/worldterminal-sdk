@@ -1,6 +1,6 @@
 # WorldTerminal SDK
 
-Python client for the WorldTerminal v1 hosted policy API. An adapter sends an instruction, robot state and camera observations, then applies the returned actions in the benchmark environment.
+Python SDK for the WorldTerminal hosted policy API, with adapters for RoboDojo, LIBERO, and RoboTwin. An adapter sends an instruction, robot state and camera observations, then applies the returned actions in the benchmark environment.
 
 ## Install
 
@@ -24,9 +24,9 @@ Obtain the endpoint, credentials and supported robot/task configuration from the
 
 The service must support the chosen benchmark's cameras, state and action semantics. The RoboDojo result covers only the named episode.
 
-## v1 control loop
+## Control loop
 
-Use one client per environment. Start each episode with `client.reset()`. Send each fresh observation once with `client.step(observation)`. Poll on `waiting`, apply each row on `ready`, and stop on `done`. Report the outcome measured by the environment with `client.end(result)`. The raw response is a mapping with `status` and `actions`. Only a ready response contains action rows.
+Use one client per environment. Start each episode with `client.reset()`. Send each fresh observation once with `client.step(observation)`. Poll on `waiting`, apply each row on `ready`, and stop on `done`. Report the outcome measured by the environment with `client.end(result)`. In API v1, the raw response is a mapping with `status` and `actions`. Only a ready response contains action rows.
 
 ```python
 with Client() as client:

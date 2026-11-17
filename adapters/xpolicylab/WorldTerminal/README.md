@@ -1,6 +1,6 @@
 # WorldTerminal for RoboDojo
 
-This evaluation adapter connects RoboDojo to a WorldTerminal v1 endpoint. It supports one environment per session and joint control. The split-process setup uses the benchmark environment for simulation and the policy environment for the adapter and SDK.
+This evaluation adapter connects RoboDojo to a WorldTerminal endpoint. It supports one environment per session and joint control. The split-process setup uses the benchmark environment for simulation and the policy environment for the adapter and SDK.
 
 ## Install
 

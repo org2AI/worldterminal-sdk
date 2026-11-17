@@ -1,6 +1,6 @@
 # WorldTerminal for LIBERO
 
-Install LIBERO and its MuJoCo dependencies in an environment that can run the upstream OffScreenRenderEnv example. Install this SDK in the same Python environment. Configure a v1 endpoint that supports the LIBERO contract below. From the SDK repository root:
+Install LIBERO and its MuJoCo dependencies in an environment that can run the upstream OffScreenRenderEnv example. Install this SDK in the same Python environment. Configure a WorldTerminal endpoint that supports the LIBERO contract below. From the SDK repository root:
 
 ```sh
 python -m pip install .
