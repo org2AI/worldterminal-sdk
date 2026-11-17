@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "worldterminal-sdk"
+version = "0.1.0.dev0"
+description = "Public client for the WorldTerminal hosted robot policy API"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["websockets>=15,<18", "msgpack>=1,<2", "numpy>=1.24"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+worldterminal_sdk = ["arx_x5.json"]

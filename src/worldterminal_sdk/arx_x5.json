@@ -1,0 +1,16 @@
+{
+  "id": "arx_x5/joint-v1",
+  "state": {
+    "left_arm_joint_state": [0, 6],
+    "left_ee_joint_state": [6, 7],
+    "right_arm_joint_state": [7, 13],
+    "right_ee_joint_state": [13, 14]
+  },
+  "action": {
+    "left_arm_joint_state": [0, 6],
+    "left_ee_joint_state": [6, 7],
+    "right_arm_joint_state": [7, 13],
+    "right_ee_joint_state": [13, 14]
+  },
+  "video": {"head": "cam_head", "left_wrist": "cam_left_wrist", "right_wrist": "cam_right_wrist"}
+}
