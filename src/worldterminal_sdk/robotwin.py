@@ -41,8 +41,10 @@ def measured_opening(robot, side):
 
 def camera_to_world_gl(world_to_camera_cv):
     matrix = np.asarray(world_to_camera_cv, dtype=float)
+    if matrix.shape == (3, 4):
+        matrix = np.vstack((matrix, [0., 0., 0., 1.]))
     if matrix.shape != (4, 4) or not np.isfinite(matrix).all():
-        raise ValueError('camera calibration requires a finite 4x4 CV extrinsic')
+        raise ValueError('camera calibration requires a finite 3x4 or 4x4 CV extrinsic')
     return (np.linalg.inv(matrix) @ np.diag([1., -1., -1., 1.])).tolist()
 
 

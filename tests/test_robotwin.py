@@ -64,3 +64,18 @@ def test_wait_consumes_no_native_step_and_official_verdict_stands(monkeypatch):
     row['left_ee_joint_state'] = [1.1]
     with pytest.raises(ValueError):
         action_vector(row)
+
+
+def test_sapien_native_three_by_four_extrinsic_and_gl_matrix_are_equivalent():
+    task = fake_task()
+    raw = task.get_obs()
+    for camera in raw['observation'].values():
+        camera['extrinsic_cv'] = np.eye(4, dtype=np.float32)[:3]
+        camera['cam2world_gl'] = np.diag([1., -1., -1., 1.]).astype(np.float32)
+    task.get_obs = lambda: raw
+    measured = observation(task, instruction='move cup', identity={'embodiment': 'aloha-agilex'})
+    assert measured['vision']['cam_head']['extrinsic_matrix'] == np.diag([1., -1., -1., 1.]).tolist()
+    camera = raw['observation']['head_camera']
+    camera['cam2world_gl'][0, 3] = 1.
+    with pytest.raises(ValueError, match='calibration disagree'):
+        observation(task, instruction='move cup', identity={'embodiment': 'aloha-agilex'})
