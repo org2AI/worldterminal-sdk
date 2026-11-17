@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from worldterminal_sdk import ActionBatch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +28,9 @@ class Session:
     def step(self, observation):
         self.observations.append(observation)
         return self.poll()
+
+    def update_observation(self, observation):
+        self.observations.append(observation)
 
     def poll(self):
         return ActionBatch.from_wire(next(self.rows))
@@ -89,7 +93,13 @@ def test_robotwin_polls_until_action_chunk_and_forwards_end(monkeypatch):
     monkeypatch.setattr(adapter, "Client", lambda *args, **kwargs: session)
     model = adapter.Model({"bench_name": "RoboTwin"})
     model.reset()
+    from test_robotwin import fake_task
+
+    from worldterminal_sdk.robotwin import observation
+    model.update_obs(observation(fake_task(), instruction='test', identity={'embodiment': 'aloha-agilex'}))
     assert model.get_action() == [row]
-    assert model.get_action() == []
+    hold = model.get_action()
+    assert hold[0]['left_arm_joint_state'] == [.1] * 6
+    assert hold[0]['left_ee_joint_state'] == [.25]
     model.on_trial_end({"success": False})
     assert session.verdict == {"success": False}
