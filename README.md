@@ -4,10 +4,10 @@ Python SDK for the WorldTerminal hosted policy API, with adapters for RoboDojo, 
 
 ## Install
 
-Use Python 3.10 or later. From the repository root:
+Use Python 3.10 or later. Install the wheel from [SDK v0.1.0](https://github.com/org2AI/worldterminal-sdk/releases/tag/v0.1.0):
 
 ```sh
-python -m pip install .
+python -m pip install https://github.com/org2AI/worldterminal-sdk/releases/download/v0.1.0/worldterminal_sdk-0.1.0-py3-none-any.whl
 export WORLDTERMINAL_API_URL='wss://your-policy-host.example'
 # Set WORLDTERMINAL_API_TOKEN in the policy process environment if required.
 ```

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "worldterminal-sdk"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Public client for the WorldTerminal hosted robot policy API"
 readme = "README.md"
 license = "Apache-2.0"
