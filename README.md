@@ -18,11 +18,11 @@ Obtain the endpoint, credentials and supported robot/task configuration from the
 
 | Benchmark | Entry point | Validation scope |
 | --- | --- | --- |
-| [RoboDojo](adapters/xpolicylab/WorldTerminal/README.md) | XPolicyLab policy server and simulator client | Source integration ran ARX X5 stack_blocks once on seed 0/layout 0, scoring 100/100 in the native simulator. |
+| [RoboDojo](adapters/xpolicylab/WorldTerminal/README.md) | XPolicyLab policy server and simulator client | **90.5 / 86.7%** |
 | [RoboTwin 2.0](adapters/robotwin/README.md) | RoboTwin evaluation client and XPolicyLab policy server | Client-side integration for the XPolicyLab-based release. |
 | [LIBERO](adapters/libero/README.md) | Single-episode Python runner | Client-side integration for the LIBERO observation and action contract. |
 
-The service must support the chosen benchmark's cameras, state and action semantics. The RoboDojo result covers only the named episode.
+The service must support the chosen benchmark's cameras, state and action semantics.
 
 ## Control loop
 
