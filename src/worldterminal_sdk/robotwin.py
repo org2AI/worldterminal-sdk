@@ -11,6 +11,39 @@ CAMERAS = {'cam_head': 'head_camera', 'cam_left_wrist': 'left_camera',
            'cam_right_wrist': 'right_camera'}
 
 
+def scene_setup(task):
+    """Public setup geometry from the actual post-randomization table entity.
+
+    No scene objects or checker fields are read. Missing table metadata stays absent;
+    neither a nominal height nor an inferred seed is substituted.
+    """
+    table = getattr(task, 'table', None)
+    if table is None:
+        return None
+
+    def pose(value):
+        return list(map(float, (*value.p, *value.q)))
+
+    boxes = []
+    for component in table.get_components():
+        shapes = getattr(component, 'get_collision_shapes', None)
+        if shapes is None:
+            continue
+        for shape in shapes():
+            half_size = getattr(shape, 'get_half_size', None)
+            if half_size is None:
+                raise ValueError('RoboTwin setup table requires box collision geometry')
+            boxes.append(dict(local_pose_wxyz=pose(shape.get_local_pose()),
+                              half_size_m=list(map(float, half_size()))))
+    if not boxes:
+        raise ValueError('RoboTwin setup table lacks collision boxes')
+    return dict(source='env_setup', provider='robotwin.task.table', frame='world',
+                tick=int(task.take_action_cnt),
+                episode=dict(task_name=str(task.task_name), episode_index=int(task.ep_num),
+                             table_instance=str(id(table))),
+                table=dict(pose_wxyz=pose(table.get_pose()), boxes=boxes))
+
+
 def robot_identity(robot):
     sides, labels = {}, []
     for side in ('left', 'right'):
@@ -88,9 +121,12 @@ def observation(task, *, instruction, identity=None, camera_names=None, raw=None
         state[f'{side}_gripper_command'] = float(getattr(robot, f'get_{side}_gripper_val')())
         targets.extend(map(float, getattr(robot, f'get_{side}_arm_jointState')()))
     state['qpos_target14'] = targets
+    metadata = dict(step=int(task.take_action_cnt), step_limit=int(task.step_lim), pictures_behind=0)
+    setup = scene_setup(task)
+    if setup is not None:
+        metadata['scene_setup'] = setup
     return dict(state=state, vision=vision, instruction=instruction,
-                additional_info={'worldterminal': dict(
-                    step=int(task.take_action_cnt), step_limit=int(task.step_lim), pictures_behind=0)})
+                additional_info={'worldterminal': metadata})
 
 
 def action_vector(row):

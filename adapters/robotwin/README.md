@@ -29,8 +29,23 @@ consuming an environment action.
 by the loaded embodiment's gripper scale. Drive targets and commanded grippers remain
 separate fields. Camera `extrinsic_cv` is converted to GL camera-to-world by inversion and
 axis conversion; it is not renamed. Loaded URDF hashes, joint names, scales and root poses
-remain in `state.robot_identity`. Only robot/camera state and RGB are read; task objects or
-checker details are not observation inputs.
+remain in `state.robot_identity`. Robot/camera state, RGB and the public table setup are
+read; task objects and checker details are not observation inputs.
+
+`additional_info.worldterminal.scene_setup` carries the actual created table entity pose
+and its collision-box local poses and half sizes, after the episode's randomization. It is
+labelled `env_setup`, with native tick, task name, episode index and an opaque table-instance
+identity. No actual seed is inferred. The server derives its tabletop surface from these
+boxes and keeps setup authority distinct from a visual measurement. Missing setup metadata
+supplies no nominal-height fallback. The direct debug host's optional RPC extension requires
+this updated SDK helper in its simulator environment as well.
+
+The source geometry was checked against RoboTwin `ea8b211`:
+`envs/_base_task.py` SHA256 `76a12a3ce2254c019e5c291e29c99b421dabbb0c6e0b9ec24db9155b2dcf81f5`
+applies height randomization before creating `task.table`;
+`envs/utils/create_actor.py` SHA256 `6bababee8e70da2460b2bbf47d3b5fbb20ccf73368782a7be596a63c962dce6d`
+places the tabletop's upper face at the entity origin. The adapter reads the live geometry,
+rather than reconstructing either nominal dimensions or the randomization formula.
 
 The old unmodified XPolicyLab RoboTwin observation conversion sends drive targets and
 commanded grippers. Staging the shared XPolicyLab policy directory alone does not satisfy
@@ -92,7 +107,8 @@ module-local override.
 The converter consumes the evaluator's existing raw observation without a second
 `get_obs()` call. It derives robot identity and measured joints/finger opening from that
 episode's actual `TASK_ENV.robot`, and retains the official instruction, environment index
-and frequency. No task objects, seed selection or scorer state are added to the observation.
+and frequency. It also carries the public post-randomization table setup described above.
+No task objects, seed selection or scorer state are added to the observation.
 The evaluator file must have SHA256
 `78821388d58daf8aa65db55c5952df3742486dd93e717ce6a96374a3795dfc7a`.
 
