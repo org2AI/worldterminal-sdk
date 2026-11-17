@@ -9,8 +9,7 @@ if [[ -e "$target" ]]; then echo "$target already exists" >&2; exit 1; fi
 stage=$(mktemp -d "$xpl/policy/.worldterminal.XXXXXX")
 trap 'rm -rf "$stage"' EXIT
 adapter="$root/adapters/xpolicylab/WorldTerminal"
-mkdir -p "$stage/WorldTerminal/wheels"
+mkdir -p "$stage/WorldTerminal"
 cp "$adapter"/*.py "$adapter"/*.sh "$adapter"/deploy.yml "$adapter"/README.md "$stage/WorldTerminal/"
-python -m pip wheel --no-deps "$root" --wheel-dir "$stage/WorldTerminal/wheels"
 mv "$stage/WorldTerminal" "$target"
 echo "Staged $target"
