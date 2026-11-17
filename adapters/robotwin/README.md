@@ -2,7 +2,6 @@
 
 The evaluator owns RoboTwin physics and its official verdict. The public SDK sends measured
 observations to a RoboTwin-enabled hosted worker and applies returned qpos14 joint rows.
-WT flows, planning, robot profiles and model credentials stay on the policy server.
 
 Use the official RoboTwin source at `ea8b21121ebb3cd201ff5b3fe361944ac94eda3f` and its assets.
 Install this SDK in the simulator environment. After the official evaluator has reset its
